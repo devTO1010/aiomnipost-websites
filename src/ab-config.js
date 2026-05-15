@@ -5,4 +5,5 @@
 window.AB_CONFIG = {
   collectUrl: "https://tbatkbpzdqygzadhxrtc.supabase.co/functions/v1/ab-collect",
   statsUrl: "https://tbatkbpzdqygzadhxrtc.supabase.co/functions/v1/ab-stats",
+  composeUrl: "https://tbatkbpzdqygzadhxrtc.supabase.co/functions/v1/compose",
 };

@@ -76,4 +76,5 @@
   };
 
   window.aiomnipostVariant = VARIANT;
+  window.aiomnipostSid = SID; // reused by the composer demo for rate-limiting
 })();

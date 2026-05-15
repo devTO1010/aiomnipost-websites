@@ -1,6 +1,7 @@
 /* Interactive demo: type a brief, pick a tone, hit Generate.
-   Calls window.claude.complete to produce one platform-native post per
-   target. Renders them inside real PlatformCard components. */
+   POSTs the brief to the server-side `compose` Edge Function (which calls
+   the Anthropic API with abuse/cost guards) and renders one platform-native
+   post per target inside real PlatformCard components. */
 
 const TONES = ["Friendly", "Bold", "Witty", "Authoritative", "Playful"];
 const PLATFORMS = ["facebook", "instagram", "linkedin", "tiktok"];
@@ -9,15 +10,6 @@ const EXAMPLE_BRIEFS = [
   { brand: "BLF Transportation", brief: "Hiring 12 long-haul drivers for new Atlanta hub. Day-one health, paid CDL ride-along program, average $87k year one." },
   { brand: "Maple & Stone", brief: "End-of-summer sample sale on the rope-handled tote. 40% off Friday-Sunday only. In-store at the Brooklyn shop." },
 ];
-
-function platformPromptHint(p) {
-  switch (p) {
-    case "facebook":  return "60–90 words, warm and conversational. End with a soft call to action. No hashtags.";
-    case "instagram": return "1–2 punchy lines, lowercase voice, 3–5 relevant hashtags at the end on a new line.";
-    case "linkedin":  return "100–140 words, professional but human. Lead with a hook. Use line breaks for rhythm. No hashtags inside the body; 2–3 at the end.";
-    case "tiktok":    return "10–25 words, casual energy. Include 3–4 trending-style hashtags inline at the end. Use one emoji max.";
-  }
-}
 
 function shimmerText(lines = 3) {
   return Array.from({ length: lines }).map((_, i) => (
@@ -40,6 +32,7 @@ const ComposerDemo = () => {
   const [posts, setPosts] = React.useState({});  // platform -> body
   const [loading, setLoading] = React.useState({});
   const [exampleIdx, setExampleIdx] = React.useState(0);
+  const [notice, setNotice] = React.useState("");
 
   const cycleExample = () => {
     const next = (exampleIdx + 1) % EXAMPLE_BRIEFS.length;
@@ -53,36 +46,45 @@ const ComposerDemo = () => {
 
   const generate = async () => {
     if (!brief.trim() || targets.length === 0) return;
+    const cfg = window.AB_CONFIG || {};
+    setNotice("");
     const loadingMap = {};
     targets.forEach(p => { loadingMap[p] = true; });
     setLoading(loadingMap);
     setPosts({});
 
-    const prompt = `You are a senior social media writer. Generate ONE post per platform for the brand "${brand}" with a ${tone.toLowerCase()} tone.
-
-Brief: ${brief}
-
-Platforms and rules:
-${targets.map(p => `- ${p.toUpperCase()}: ${platformPromptHint(p)}`).join("\n")}
-
-Return ONLY a JSON object, no commentary, of shape:
-{ ${targets.map(p => `"${p}": "post body for ${p}"`).join(", ")} }`;
-
     try {
-      const raw = await window.claude.complete(prompt);
-      // strip code fences if present
-      let json = raw.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
-      const start = json.indexOf("{");
-      const end = json.lastIndexOf("}");
-      if (start >= 0 && end > start) json = json.slice(start, end + 1);
-      const parsed = JSON.parse(json);
-      setPosts(parsed);
+      const res = await fetch(cfg.composeUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand: brand.slice(0, 80),
+          brief: brief.slice(0, 600),
+          tone,
+          platforms: targets,
+          sid: window.aiomnipostSid || "demo-no-session",
+        }),
+      });
+
+      if (res.status === 429) {
+        setNotice("You've hit the demo limit for now — try again in an hour, or start your free trial to generate without limits.");
+        setLoading({});
+        return;
+      }
+      if (!res.ok) throw new Error("compose " + res.status);
+
+      const data = await res.json();
+      if (data.degraded) {
+        setNotice("Showing sample output — the live demo is at capacity right now. The real product has no limits.");
+      }
+      setPosts(data.posts || {});
     } catch (err) {
       console.error("composer error", err);
-      // fallback static content so the demo never looks broken
+      // never look broken: fall back to a readable placeholder
       const fb = {};
-      targets.forEach(p => { fb[p] = `[Demo offline] ${brief}`; });
+      targets.forEach(p => { fb[p] = brief; });
       setPosts(fb);
+      setNotice("Couldn't reach the live demo just now — showing your brief as-is.");
     } finally {
       setLoading({});
     }
@@ -207,6 +209,15 @@ Return ONLY a JSON object, no commentary, of shape:
 
         {/* RIGHT: results */}
         <div>
+          {notice && (
+            <div style={{
+              marginBottom: 16, padding: "12px 16px", borderRadius: 12,
+              border: "1px solid var(--line)", background: "rgba(0,0,0,0.02)",
+              fontSize: 13, color: "var(--muted)", lineHeight: 1.5,
+            }}>
+              {notice}
+            </div>
+          )}
           <div className="results-grid">
             {targets.length === 0 && (
               <div style={{ gridColumn: "1 / -1", padding: 40, textAlign: "center", color: "var(--muted)", border: "1px dashed var(--line)", borderRadius: 16 }}>
