@@ -19,8 +19,21 @@ const Avatar = ({ size = 36, color = "#16304d", initials = "AO" }) => (
   }}>{initials}</div>
 );
 
-/* placeholder media: subtle striped backdrop with a label */
-const MediaSlot = ({ aspect = "4/5", label = "product shot", tone = "warm" }) => {
+/* media slot: a real photo when `src` is given, otherwise a subtle
+   striped backdrop with a label (kept as a graceful fallback). */
+const MediaSlot = ({ aspect = "4/5", label = "product shot", tone = "warm", src }) => {
+  if (src) {
+    return (
+      <div style={{ aspectRatio: aspect, width: "100%", overflow: "hidden", background: "#e8e4d8" }}>
+        <img
+          src={src}
+          alt={label}
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </div>
+    );
+  }
   const stripes = tone === "dark"
     ? "repeating-linear-gradient(135deg, #1d2630 0 12px, #232d39 12px 24px)"
     : "repeating-linear-gradient(135deg, #efece4 0 12px, #e8e4d8 12px 24px)";
@@ -37,7 +50,7 @@ const MediaSlot = ({ aspect = "4/5", label = "product shot", tone = "warm" }) =>
 };
 
 /* ---------------- Facebook post ---------------- */
-const FacebookCard = ({ brand = "Northwind Coffee Co.", body, image = "indoor café shot" }) => (
+const FacebookCard = ({ brand = "Northwind Coffee Co.", body, image = "indoor café shot", media }) => (
   <div style={{
     background: "#fff", borderRadius: 10, border: "1px solid #e4e6eb",
     fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
@@ -54,7 +67,7 @@ const FacebookCard = ({ brand = "Northwind Coffee Co.", body, image = "indoor ca
     <div style={{ padding: "0 14px 12px", fontSize: 14, lineHeight: 1.4, whiteSpace: "pre-wrap" }}>
       {body || "New autumn blend just landed in the roastery. Notes of toffee, dried fig, and a clean cocoa finish. Pre-order opens Friday for our café members ☕"}
     </div>
-    <MediaSlot aspect="1.91/1" label={image} />
+    <MediaSlot aspect="1.91/1" label={image} src={media} />
     <div style={{
       padding: "8px 14px", display: "flex", alignItems: "center", justifyContent: "space-between",
       fontSize: 12, color: "#65676b", borderBottom: "1px solid #e4e6eb",
@@ -77,7 +90,7 @@ const FacebookCard = ({ brand = "Northwind Coffee Co.", body, image = "indoor ca
 );
 
 /* ---------------- Instagram post ---------------- */
-const InstagramCard = ({ brand = "northwind.coffee", body, image = "latte top-down" }) => (
+const InstagramCard = ({ brand = "northwind.coffee", body, image = "latte top-down", media }) => (
   <div style={{
     background: "#fff", borderRadius: 10, border: "1px solid #dbdbdb",
     fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
@@ -96,7 +109,7 @@ const InstagramCard = ({ brand = "northwind.coffee", body, image = "latte top-do
       <div style={{ flex: 1, fontWeight: 600, fontSize: 13 }}>{brand}</div>
       <IconDots size={18} stroke={2} />
     </div>
-    <MediaSlot aspect="1/1" label={image} />
+    <MediaSlot aspect="1/1" label={image} src={media} />
     <div style={{ padding: "10px 12px", display: "flex", alignItems: "center", gap: 14 }}>
       <IconHeart size={22} stroke={1.8} />
       <IconBubble size={22} stroke={1.8} />
@@ -116,7 +129,7 @@ const InstagramCard = ({ brand = "northwind.coffee", body, image = "latte top-do
 );
 
 /* ---------------- LinkedIn post ---------------- */
-const LinkedInCard = ({ brand = "Northwind Coffee Co.", role = "Specialty roaster · 4,201 followers", body, image = "team in roastery" }) => (
+const LinkedInCard = ({ brand = "Northwind Coffee Co.", role = "Specialty roaster · 4,201 followers", body, image = "team in roastery", media }) => (
   <div style={{
     background: "#fff", borderRadius: 10, border: "1px solid #d0d7de",
     fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
@@ -134,7 +147,7 @@ const LinkedInCard = ({ brand = "Northwind Coffee Co.", role = "Specialty roaste
     <div style={{ padding: "0 14px 12px", fontSize: 14, lineHeight: 1.45, whiteSpace: "pre-wrap" }}>
       {body || "We rebuilt our autumn sourcing program around three principles: direct trade, single-origin transparency, and a no-blend rule on first-of-season harvests.\n\nThe result: a notes-forward toffee + fig + cocoa profile we're proud of. Pre-orders open Friday for café members."}
     </div>
-    <MediaSlot aspect="1.91/1" label={image} />
+    <MediaSlot aspect="1.91/1" label={image} src={media} />
     <div style={{ padding: "10px 14px", fontSize: 12, color: "#666", display: "flex", justifyContent: "space-between", borderBottom: "1px solid #e0e0e0" }}>
       <span><span style={{ display: "inline-block", width: 14, height: 14, borderRadius: "50%", background: "#0a66c2", verticalAlign: "middle", marginRight: 4 }}></span>412 reactions</span>
       <span>38 comments</span>
@@ -148,14 +161,14 @@ const LinkedInCard = ({ brand = "Northwind Coffee Co.", role = "Specialty roaste
 );
 
 /* ---------------- TikTok phone-style card ---------------- */
-const TikTokCard = ({ brand = "@northwind.coffee", body, image = "barista pour vertical" }) => (
+const TikTokCard = ({ brand = "@northwind.coffee", body, image = "barista pour vertical", media }) => (
   <div style={{
     background: "#000", borderRadius: 14, color: "#fff",
     fontFamily: "system-ui, -apple-system, Segoe UI, sans-serif",
     overflow: "hidden", width: "100%", aspectRatio: "9/16",
     position: "relative",
   }}>
-    <MediaSlot aspect="9/16" label={image} tone="dark" />
+    <MediaSlot aspect="9/16" label={image} tone="dark" src={media} />
     <div style={{
       position: "absolute", inset: 0,
       background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.3) 100%)",

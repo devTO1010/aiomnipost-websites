@@ -110,19 +110,19 @@ const PlatformStack = () => {
     }}>
       <div style={{ transform: "translateY(20px)" }}>
         <PreviewTag kind="facebook" />
-        <PlatformCard kind="facebook" body={sharedBrief.facebook} />
+        <PlatformCard kind="facebook" body={sharedBrief.facebook} media="assets/post-cafe.jpg" />
       </div>
       <div>
         <PreviewTag kind="instagram" />
-        <PlatformCard kind="instagram" body={sharedBrief.instagram} />
+        <PlatformCard kind="instagram" body={sharedBrief.instagram} media="assets/post-latte.jpg" />
       </div>
       <div style={{ transform: "translateY(40px)" }}>
         <PreviewTag kind="linkedin" />
-        <PlatformCard kind="linkedin" body={sharedBrief.linkedin} />
+        <PlatformCard kind="linkedin" body={sharedBrief.linkedin} media="assets/post-roastery.jpg" />
       </div>
       <div style={{ transform: "translateY(10px)" }}>
         <PreviewTag kind="tiktok" />
-        <PlatformCard kind="tiktok" body={sharedBrief.tiktok} />
+        <PlatformCard kind="tiktok" body={sharedBrief.tiktok} media="assets/post-barista.jpg" />
       </div>
     </div>
   );
