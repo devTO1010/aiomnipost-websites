@@ -37,7 +37,8 @@ const PLATFORM_RULES: Record<Platform, string> = {
 };
 
 function corsHeaders(origin: string | null): HeadersInit {
-  const allow = origin && origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+  const allowed = ALLOWED_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean);
+  const allow = origin && allowed.includes(origin) ? origin : (allowed[0] ?? "");
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "POST, OPTIONS",

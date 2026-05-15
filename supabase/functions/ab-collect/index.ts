@@ -22,8 +22,10 @@ const EVENT_TYPES = new Set(["impression", "conversion"]);
 const SID_RE = /^[A-Za-z0-9_-]{8,64}$/;
 
 function corsHeaders(origin: string | null): HeadersInit {
-  // Only echo the origin back if it exactly matches the configured site.
-  const allow = origin && origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
+  // ALLOWED_ORIGIN may be a comma-separated list (e.g. during a domain
+  // cutover). Echo the caller's origin only if it's in the set.
+  const allowed = ALLOWED_ORIGIN.split(",").map((s) => s.trim()).filter(Boolean);
+  const allow = origin && allowed.includes(origin) ? origin : (allowed[0] ?? "");
   return {
     "Access-Control-Allow-Origin": allow,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
