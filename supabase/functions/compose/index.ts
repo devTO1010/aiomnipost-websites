@@ -7,18 +7,20 @@
 //   - per-visitor rate limit (SID + hour bucket)
 //   - hard global daily cap → past it, serve canned posts (no API spend)
 //   - server-owned system prompt (client can't inject a huge prompt)
-//   - ANTHROPIC_API_KEY server-only; CORS locked to the site origin
+//   - OPENROUTER_API_KEY server-only; CORS locked to the site origin
 //   - PII-free: only an opaque sid + counts are ever stored
 //
+// Model is served via OpenRouter (OpenAI-compatible chat completions).
+//
 // Required env (supabase secrets set):
-//   SB_URL, SB_SERVICE_ROLE_KEY, ALLOWED_ORIGIN, ANTHROPIC_API_KEY
+//   SB_URL, SB_SERVICE_ROLE_KEY, ALLOWED_ORIGIN, OPENROUTER_API_KEY
 
 const SB_URL = Deno.env.get("SB_URL")!;
 const SB_SERVICE_ROLE_KEY = Deno.env.get("SB_SERVICE_ROLE_KEY")!;
 const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "";
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY")!;
 
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "anthropic/claude-sonnet-4.6";
 const PER_SID_HOURLY_LIMIT = 5;
 const GLOBAL_DAILY_LIMIT = 500;
 
@@ -150,24 +152,30 @@ Deno.serve(async (req) => {
   };
 
   try {
-    const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
+    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "HTTP-Referer": ALLOWED_ORIGIN,
+        "X-Title": "AI OmniPost",
       },
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 1500,
-        system,
-        messages: [{ role: "user", content: userText }],
-        output_config: { format: { type: "json_schema", schema } },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: userText },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: { name: "posts", strict: true, schema },
+        },
       }),
     });
 
     if (!aiRes.ok) {
-      console.error("anthropic error", aiRes.status);
+      console.error("openrouter error", aiRes.status);
       return new Response(
         JSON.stringify({ posts: cannedPosts(brand, brief, platforms), degraded: true }),
         { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
@@ -175,15 +183,21 @@ Deno.serve(async (req) => {
     }
 
     const data = await aiRes.json();
-    if (data.stop_reason === "refusal") {
+    const choice = data.choices?.[0];
+    const raw = choice?.message?.content;
+    if (choice?.message?.refusal || typeof raw !== "string" || !raw.trim()) {
       return new Response(
         JSON.stringify({ posts: cannedPosts(brand, brief, platforms), degraded: true }),
         { status: 200, headers: { ...cors, "Content-Type": "application/json" } },
       );
     }
 
-    const textBlock = (data.content ?? []).find((b: { type: string }) => b.type === "text");
-    const posts = JSON.parse(textBlock.text);
+    // Defensive parse: strict json_schema should return clean JSON, but
+    // tolerate code fences / prose if a route ignores the format hint.
+    let json = raw.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/, "");
+    const s = json.indexOf("{"), e = json.lastIndexOf("}");
+    if (s >= 0 && e > s) json = json.slice(s, e + 1);
+    const posts = JSON.parse(json);
 
     return new Response(JSON.stringify({ posts }), {
       status: 200,
