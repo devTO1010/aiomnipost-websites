@@ -1,0 +1,10 @@
+# Secrets — never commit. Edge Function secrets live in Supabase, not here.
+.env
+.env.*
+*.key
+.supabase/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+node_modules/

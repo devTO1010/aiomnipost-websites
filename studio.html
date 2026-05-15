@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI OmniPost — Studio. One brief. Every channel.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+    <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+    <style>
+      :root {
+        --paper: #0a0b0c;
+        --paper-2: #131517;
+        --ink: #f3f1e9;
+        --ink-2: #d6d2c2;
+        --muted: #8a877c;
+        --muted-2: #5d5a52;
+        --line: #25272a;
+        --line-2: #1a1c1f;
+        --navy: #f3f1e9;
+        --navy-2: #d6d2c2;
+        --blue: #d2f53d;
+        --blue-soft: #2a3208;
+        --warn: #ff9255;
+        --pos: #6dd99c;
+        --surface: #131517;
+        --on-accent: #0a0b0c;
+        --on-dark: #0a0b0c;
+        --on-dark-mute: rgba(10,11,12,0.72);
+        --on-dark-mute-2: rgba(10,11,12,0.52);
+        --on-dark-line: rgba(10,11,12,0.18);
+        --on-dark-line-2: rgba(10,11,12,0.3);
+        --on-dark-surface: rgba(10,11,12,0.06);
+        --on-dark-accent: #0a0b0c;
+        --mute-on-ink: rgba(10,11,12,0.7);
+        --mute-on-ink-2: rgba(10,11,12,0.5);
+        --accent-on-ink: #0a0b0c;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "Geist", system-ui, sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        font-size: 16px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-feature-settings: "ss01"; }
+      .serif { font-family: "Geist", sans-serif; font-style: italic; font-weight: 800; letter-spacing: -0.03em; }
+      a { color: inherit; }
+      .container { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+      @media (max-width: 720px) { .container { padding: 0 20px; } }
+      .eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--blue);
+      }
+      .section-num {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        height: 46px;
+        padding: 0 22px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        letter-spacing: -0.005em;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: transform 120ms ease, background 120ms ease, color 120ms ease, border-color 120ms ease;
+      }
+      .btn:active { transform: translateY(1px); }
+      .btn-primary { background: var(--blue); color: #0a0b0c; }
+      .btn-primary:hover { background: #e8ff67; }
+      .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+      .btn-ghost:hover { border-color: var(--ink); background: rgba(255,255,255,0.03); }
+      .btn-light { background: var(--ink); color: var(--paper); }
+      .btn-light:hover { background: #fff; }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 4px;
+        border: 1px solid var(--line);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        background: var(--paper-2);
+      }
+      .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); display: inline-block; }
+      .card {
+        background: var(--paper-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      .divider { height: 1px; background: var(--line); width: 100%; }
+      h1, h2, h3, h4 { letter-spacing: -0.035em; font-weight: 600; margin: 0; }
+      h1 { font-size: clamp(40px, 6.2vw, 80px); line-height: 1; letter-spacing: -0.04em; font-weight: 700; }
+      h2 { font-size: clamp(32px, 4vw, 52px); line-height: 1.04; letter-spacing: -0.032em; font-weight: 600; }
+      h3 { font-size: 22px; line-height: 1.2; }
+      p { margin: 0; }
+      .grid { display: grid; }
+      .row { display: flex; }
+      .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } .gap-5 { gap: 20px; } .gap-6 { gap: 24px; } .gap-8 { gap: 32px; } .gap-10 { gap: 40px; } .gap-12 { gap: 48px; }
+
+      /* dark section — in Studio theme, the "dark" section is reversed: bright */
+      .dark {
+        background: var(--blue);
+        color: #0a0b0c;
+      }
+      .dark .eyebrow, .dark .section-num { color: rgba(10,11,12,0.55); }
+      .dark .pill { color: #0a0b0c; border-color: rgba(10,11,12,0.18); background: rgba(10,11,12,0.06); }
+      .dark .btn-ghost { color: #0a0b0c; border-color: rgba(10,11,12,0.25); }
+      .dark .btn-ghost:hover { border-color: #0a0b0c; background: rgba(10,11,12,0.05); }
+      .dark .btn-light { background: #0a0b0c; color: var(--blue); }
+      .dark .serif { color: #0a0b0c; }
+
+      /* hero hairline grid */
+      .hero-bg {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(to right, rgba(243,241,233,0.06) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(243,241,233,0.06) 1px, transparent 1px);
+        background-size: 96px 96px;
+        mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 80%);
+        pointer-events: none;
+      }
+
+      @keyframes pulse-dot {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.4); opacity: 0.6; }
+      }
+      .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
+
+      @keyframes scroll-x {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+      }
+      .marquee { display: flex; gap: 56px; animation: scroll-x 32s linear infinite; width: max-content; }
+
+      input[type="text"], textarea, select {
+        font-family: inherit;
+        font-size: 14px;
+        color: var(--ink);
+        background: var(--paper);
+        border-color: var(--line) !important;
+      }
+      textarea { resize: none; }
+      ::selection { background: var(--blue); color: #0a0b0c; }
+
+      .tilt-l { transform: rotate(-3deg); }
+      .tilt-r { transform: rotate(3deg); }
+
+      details > summary { list-style: none; cursor: pointer; }
+      details > summary::-webkit-details-marker { display: none; }
+
+      @media (max-width: 920px) {
+        .site-nav { display: none; }
+      }
+
+      /* studio-specific: nav links lime hover */
+      header nav a:hover { color: var(--blue); }
+
+      /* override composer card to match dark theme */
+      .composer-card { background: var(--paper-2) !important; border-color: var(--line) !important; }
+      .platform-toggle { background: var(--paper) !important; border-color: var(--line) !important; color: var(--ink) !important; }
+      .platform-toggle.on { background: var(--blue) !important; color: #0a0b0c !important; border-color: var(--blue) !important; }
+      .tone-chip { background: var(--paper) !important; border-color: var(--line) !important; color: var(--ink) !important; }
+      .tone-chip.on { background: var(--blue) !important; color: #0a0b0c !important; border-color: var(--blue) !important; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="src/ab-config.js"></script>
+    <script src="src/ab.js"></script>
+
+    <script type="text/babel" src="src/icons.jsx"></script>
+    <script type="text/babel" src="src/platforms.jsx"></script>
+    <script type="text/babel" src="src/composer.jsx"></script>
+    <script type="text/babel" src="src/sections.jsx"></script>
+    <script type="text/babel" src="src/app.jsx"></script>
+  </body>
+</html>
